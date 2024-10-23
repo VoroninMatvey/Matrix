@@ -1,5 +1,4 @@
 #include <iostream>
-#include <vector>
 #include <utility>
 
 namespace details {
@@ -14,11 +13,6 @@ template <typename T> class Matrix {
         using const_pointer = const T*;
         using double_pointer = T**;
         using const_double_pointer = const T**;
-        using It = typename std::vector<T>::iterator;
-
-        double_pointer data_;
-        size_type rows_; // количество строк
-        size_type cols_; // количество столбцов
 
 
         Matrix(size_type rows, size_type cols) : data_(new pointer[rows]), rows_(rows), cols_(cols) {
@@ -27,15 +21,14 @@ template <typename T> class Matrix {
             }
         }
 
+        template<typename It>
         Matrix(size_type rows, size_type cols, It beg, It end) : data_(new pointer[rows]), rows_(rows), cols_(cols) { //переделать, поменять порядки вложенности и сделать выброс исключеняи
             if(std::distance(beg, end) == rows_*cols_) {
                 It it = beg;
                 for(int i = 0; i < rows_; ++i) {
                     data_[i] = new value_type[cols_];
-                    for(int j = 0; j < cols_; ++j) {
-                        data_[i][j] = *it;
-                        ++it;
-                    }
+                    std::copy(it, it + cols_, data_[i]);
+                    it += cols_;
                 }
             } else {
                 std::cout << "bad initialization!!!!!" << std::endl;
@@ -85,16 +78,13 @@ template <typename T> class Matrix {
             return m;
         }
 
-        void print_Matrix() {
-            std::size_t i = 0;
-            std::size_t j = 0;
-
-            while(i < rows_) {
+        void print_Matrix() const {
+            std::size_t i, j;
+            for(i = 0; i < rows_; ++i) {
                 for(j = 0; j < cols_; ++j) {
                     std::cout << data_[i][j] << " ";
                 }
                 std::cout << std::endl;
-                ++i;
             }
         }
 
@@ -102,6 +92,27 @@ template <typename T> class Matrix {
             std::swap(cols_, m.cols_);
             std::swap(rows_, m.rows_);
             std::swap(data_, m.data_);
+        }
+
+        size_type ncols() const {
+            return cols_;
+        }
+
+        size_type nrows() const {
+            return rows_;
+        }
+
+        T trace() const {
+            T trace = 1;
+            for(int k = 0; k < cols_; ++k) {
+                trace *= data_[k][k];
+            }
+            return trace;
+        }
+
+        bool equal(const Matrix& other) const {
+            if(other.rows_ != rows_ || other.cols_ != cols_) return false;
+            
         }
 
         //Find for a row with a non-zero element at position [k][i], k > i. Return 0 if there is none
@@ -134,6 +145,11 @@ template <typename T> class Matrix {
 
         value_type Gauss();
         value_type Bareiss();
+
+private:
+        double_pointer data_;
+        size_type rows_; // количество строк
+        size_type cols_; // количество столбцов
 
 }; // <-- namespace Matrix
 

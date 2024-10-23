@@ -1,14 +1,15 @@
 #include <iostream>
 #include "Matrix.hpp"
+#include <vector>
 
 int main() { 
 
-    details::Matrix<double> m1{4, 4};
+    /*details::Matrix<double> m1{4, 4};
     m1.print_Matrix();
     std::cout << std::endl;
 
     std::cout << m1.Gauss();
-    std::cout << std::endl;
+    std::cout << std::endl;*/
 
     std::vector<double> vec;
     vec.push_back(3);
