@@ -1,5 +1,8 @@
 #include <iostream>
+#include <iterator>
 #include <utility>
+#include <algorithm>
+#include "Matrix_iterator.hpp"
 
 namespace details {
 template <typename T> class Matrix {
@@ -13,23 +16,29 @@ template <typename T> class Matrix {
         using const_pointer = const T*;
         using double_pointer = T**;
         using const_double_pointer = const T**;
+        using iterator = Matrix_iterator<T>;
+        using const_iterator = Matrix_iterator<const T>;
+        using reverse_iterator = std::reverse_iterator<iterator>;
 
+        struct ProxyRow {
+            pointer row_;
+
+            ProxyRow(pointer ptr): row_(ptr) {}
+            reference operator[](int n) { return row_[n]; }
+            const_reference operator[](int n) const {return row_[n]; }
+        };
 
         Matrix(size_type rows, size_type cols) : data_(new pointer[rows]), rows_(rows), cols_(cols) {
-            for(int i = 0; i < rows_; ++i) {
-                data_[i] = new value_type[cols_]{};
-            }
+            pointer matrix_ptr = new value_type[rows_*cols_]{};
+            filling_data_field(matrix_ptr);
         }
 
         template<typename It>
-        Matrix(size_type rows, size_type cols, It beg, It end) : data_(new pointer[rows]), rows_(rows), cols_(cols) { //переделать, поменять порядки вложенности и сделать выброс исключеняи
+        Matrix(size_type rows, size_type cols, It beg, It end) : data_(new pointer[rows]), rows_(rows), cols_(cols) { //сделать выброс исключеняи
             if(std::distance(beg, end) == rows_*cols_) {
-                It it = beg;
-                for(int i = 0; i < rows_; ++i) {
-                    data_[i] = new value_type[cols_];
-                    std::copy(it, it + cols_, data_[i]);
-                    it += cols_;
-                }
+                pointer matrix_ptr = new value_type[rows*cols];
+                filling_data_field(matrix_ptr);
+                std::copy(beg, end, data_[0]);
             } else {
                 std::cout << "bad initialization!!!!!" << std::endl;
                 exit(0);
@@ -37,10 +46,9 @@ template <typename T> class Matrix {
         }
 
         Matrix(const Matrix &rhs): data_(new pointer[rhs.rows_]), rows_(rhs.rows_), cols_(rhs.cols_) {
-            for(int i = 0; i < rows_; ++i) {
-                data_[i] = new value_type[cols_];
-                std::copy(rhs.data_[i], rhs.data_[i] + rhs.cols_, data_[i]);
-            }
+            pointer matrix_ptr = new value_type[rows_*cols_];
+            filling_data_field(matrix_ptr);
+            std::copy(rhs.data_[0], rhs.data_[0] + cols_*rows_, data_[0]);
         }
 
         Matrix& operator=(const Matrix &rhs) {
@@ -64,34 +72,30 @@ template <typename T> class Matrix {
         }
 
         ~Matrix() {
-            for(int i = 0; i < rows_; ++i) {
-                delete[] data_[i]; 
-            }
+            if(data_) delete[] *data_;
             delete[] data_;
         }
 
         static Matrix eye(std::size_t n) {
             Matrix m{n, n};
-            for(int i = 0; i < n; ++i) {
+            for(int i = 0; i < n; ++i)  {
                 m.data_[i][i] = 1;
             }
             return m;
-        }
-
-        void print_Matrix() const {
-            std::size_t i, j;
-            for(i = 0; i < rows_; ++i) {
-                for(j = 0; j < cols_; ++j) {
-                    std::cout << data_[i][j] << " ";
-                }
-                std::cout << std::endl;
-            }
         }
 
         void swap(Matrix& m) {
             std::swap(cols_, m.cols_);
             std::swap(rows_, m.rows_);
             std::swap(data_, m.data_);
+        }
+
+        iterator begin() const {
+            return *data_;
+        }
+
+        iterator end() const {
+            return *data_ + cols_*rows_;
         }
 
         size_type ncols() const {
@@ -102,7 +106,7 @@ template <typename T> class Matrix {
             return rows_;
         }
 
-        T trace() const {
+        value_type trace() const {
             T trace = 1;
             for(int k = 0; k < cols_; ++k) {
                 trace *= data_[k][k];
@@ -110,10 +114,15 @@ template <typename T> class Matrix {
             return trace;
         }
 
-        bool equal(const Matrix& other) const {
-            if(other.rows_ != rows_ || other.cols_ != cols_) return false;
-            
+        void filling_data_field(pointer ptr) {
+            for(int i = 0; i < rows_; ++i) {
+                data_[i] = ptr + i*cols_;
+            }
         }
+
+        ProxyRow operator[](int n) const {
+            return ProxyRow{data_[n]};
+        } 
 
         //Find for a row with a non-zero element at position [k][i], k > i. Return 0 if there is none
         int find_needed_row(int i) const {
@@ -143,8 +152,8 @@ template <typename T> class Matrix {
             }
         }
 
-        value_type Gauss();
-        value_type Bareiss();
+        value_type Gauss() const;
+        value_type Bareiss() const;
 
 private:
         double_pointer data_;
@@ -154,7 +163,7 @@ private:
 }; // <-- namespace Matrix
 
 template<typename T>
-typename Matrix<T>::value_type Matrix<T>::Gauss() { //why typename
+typename Matrix<T>::value_type Matrix<T>::Gauss() const { //why typename
     auto m = *this;
     int def_sign = 1;
     for(int i = 0; i < m.rows_ - 1; ++i) {
@@ -168,7 +177,7 @@ typename Matrix<T>::value_type Matrix<T>::Gauss() { //why typename
 
         for(int j = i + 1; j < m.rows_; ++j) {
             m.Gauss_convert_row(j, i, i);
-            m.print_Matrix();
+            std::cout << m << std::endl;
         }
     }
 
@@ -180,7 +189,7 @@ typename Matrix<T>::value_type Matrix<T>::Gauss() { //why typename
 }
 
 template<typename T>
-typename Matrix<T>::value_type Matrix<T>::Bareiss() { //why typename
+typename Matrix<T>::value_type Matrix<T>::Bareiss() const {
     auto m = *this;
     int def_sign = 1;
     for(int i = 0; i < m.rows_ - 1; ++i) {
@@ -194,13 +203,27 @@ typename Matrix<T>::value_type Matrix<T>::Bareiss() { //why typename
 
         for(int j = i + 1; j < m.rows_; ++j) {
             m.Bareiss_convert_row(j, i, i);
-            m.print_Matrix();
-            std::cout << std::endl;
+            std::cout << m << std::endl;
         }
         m.denominator_ = m.data_[i][i];
     }
     return m.data_[m.rows_ - 1][m.cols_ - 1]*def_sign;
-
-//---------------------------------------------------------------------------------------------------------------------------------------
 }
 } // <-- namespace details
+
+/*template<typename T>
+inline bool operator==(const details::Matrix<T>& lhs, const details::Matrix<T>& rhs) {
+    if(lhs.nrows() != rhs.nrows() || lhs.ncols() != rhs.ncols()) return false;
+    return std::equal(lhs.begin(), lhs.end(), rhs.begin(), rhs.end());
+}*/
+
+template<typename T>
+std::ostream& operator<<(std::ostream& os, const details::Matrix<T>& obj) {
+    for(int i = 0, Rows = obj.nrows(); i < Rows; ++i) {
+        for(int j = 0, Cols = obj.ncols(); j < Cols; ++j) {
+            os << obj[i][j] << " ";
+        }
+        os << std::endl;
+    }
+    return os;
+}
