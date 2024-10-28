@@ -1,13 +1,13 @@
 #include <iostream>
-#include <iterator>
 #include <utility>
 #include <algorithm>
+#include <concepts>
 #include "Matrix_iterator.hpp"
 
 namespace details {
 template <typename T> class Matrix {
-    public:
 
+public:
         using size_type = std::size_t;
         using value_type = T;
         using reference = T&;
@@ -20,6 +20,7 @@ template <typename T> class Matrix {
         using const_iterator = Matrix_iterator<const T>;
         using reverse_iterator = std::reverse_iterator<iterator>;
 
+private:
         struct ProxyRow {
             pointer row_;
 
@@ -27,6 +28,11 @@ template <typename T> class Matrix {
             reference operator[](int n) { return row_[n]; }
             const_reference operator[](int n) const {return row_[n]; }
         };
+    
+public:
+        ProxyRow operator[](int n) const {
+            return ProxyRow{data_[n]};
+        } 
 
         Matrix(size_type rows, size_type cols) : data_(new pointer[rows]), rows_(rows), cols_(cols) {
             pointer matrix_ptr = new value_type[rows_*cols_]{};
@@ -64,7 +70,7 @@ template <typename T> class Matrix {
             cols_(std::exchange(rhs.cols_, 0)) 
         {}
 
-        Matrix& operator= (Matrix&& rhs) noexcept {
+        Matrix& operator=(Matrix&& rhs) noexcept {
             if(this == &rhs) return *this;
             Matrix m = std::move(rhs);
             swap(m);
@@ -90,14 +96,6 @@ template <typename T> class Matrix {
             std::swap(data_, m.data_);
         }
 
-        iterator begin() const {
-            return *data_;
-        }
-
-        iterator end() const {
-            return *data_ + cols_*rows_;
-        }
-
         size_type ncols() const {
             return cols_;
         }
@@ -107,22 +105,50 @@ template <typename T> class Matrix {
         }
 
         value_type trace() const {
-            T trace = 1;
+            value_type trace = 1;
             for(int k = 0; k < cols_; ++k) {
                 trace *= data_[k][k];
             }
             return trace;
         }
 
+        Matrix& negate() & {
+            for(auto &elem : *this) {
+                elem *= -1;
+            } 
+            return *this;
+        }
+
+        Matrix& transpose() & {
+            if(cols_ == rows_) return square_matrix_transpose();
+
+            Matrix& cur = *this;
+            Matrix temp{cols_, rows_};
+            for(int i = 0; i < temp.rows_; ++i) {
+                for(int j = 0; j < temp.cols_; ++j) {
+                    temp[i][j] = cur[j][i];
+                }
+            }
+            cur.swap(temp);
+            return *this;
+        }
+
+        Matrix& square_matrix_transpose() & {
+            auto& temp = *this;
+            for(int i = 0; i < rows_ - 1; ++i) {
+                for(int j = i + 1; j < cols_; ++j) {
+                    std::swap(temp[i][j], temp[j][i]);
+                }
+            }
+            return *this;
+        }
+
+private:
         void filling_data_field(pointer ptr) {
             for(int i = 0; i < rows_; ++i) {
                 data_[i] = ptr + i*cols_;
             }
         }
-
-        ProxyRow operator[](int n) const {
-            return ProxyRow{data_[n]};
-        } 
 
         //Find for a row with a non-zero element at position [k][i], k > i. Return 0 if there is none
         int find_needed_row(int i) const {
@@ -134,26 +160,60 @@ template <typename T> class Matrix {
             return 0;
         }
 
+        //transforms the matrix to the desired form at loop iteration i before running the algorithms, if necessary
+        //return 0, if temp[j][k] == 0 for all k from j to rows_, else return 1
+        int transform(int j, Matrix& temp, int& det_sign) const {
+            if(temp[j][j] != 0) return 1;
+            int num = temp.find_needed_row(j);
+            if(num != 0) {
+                std::swap(temp.data_[j], temp.data_[num]);
+                det_sign *= -1;
+                return 1;
+            } else return 0;
+        }
+
         //converting first row to zero element at position col_num using second row with Gauss alghoritm
         void Gauss_convert_row(int row_num1, int row_num2, int col_num) {
-            double coef = data_[row_num1][col_num] / data_[row_num2][col_num]; //double?
+            value_type coef = data_[row_num1][col_num] / data_[row_num2][col_num];
             for(int i = col_num; i < cols_; ++i) {
                 data_[row_num1][i] -= coef*data_[row_num2][i];
             }
         }
 
-        value_type denominator_ = 1;
         //converting first row to zero element at position col_num using second row with Bareiss alghoritm
-        void Bareiss_convert_row(int row_num1, int row_num2, int col_num) {
+        void Bareiss_convert_row(int row_num1, int row_num2, int col_num, value_type& denominator) {
             value_type row1_k = data_[row_num1][col_num];
             value_type row2_k = data_[row_num2][col_num];
             for(int i = col_num; i < cols_; ++i) {
-                data_[row_num1][i] = (row2_k*data_[row_num1][i] - row1_k*data_[row_num2][i]) / denominator_;
+                data_[row_num1][i] = (row2_k*data_[row_num1][i] - row1_k*data_[row_num2][i])/denominator;
             }
         }
 
         value_type Gauss() const;
         value_type Bareiss() const;
+    
+public:   
+        value_type determinant() const {
+            if constexpr (!std::signed_integral<T>) {
+                Matrix<double> temp = *this;
+                return temp.Gauss();
+            } else {
+                return Bareiss();
+            }
+            /*if(std::signed_integral<T>) {
+                std::cout << "wer";
+                return Bareiss();
+            } else {
+                std::cout << "qer";
+                Matrix<double> temp = *this;
+                return temp.Gauss();
+            }*/
+        }
+
+        iterator begin() const { return *data_; }
+        iterator end() const { return *data_ + cols_*rows_; }
+        const_iterator cbegin() const { return *data_; }
+        const_iterator cend() const { return *data_ + cols_*rows_; }
 
 private:
         double_pointer data_;
@@ -163,62 +223,7 @@ private:
 }; // <-- namespace Matrix
 
 template<typename T>
-typename Matrix<T>::value_type Matrix<T>::Gauss() const { //why typename
-    auto m = *this;
-    int def_sign = 1;
-    for(int i = 0; i < m.rows_ - 1; ++i) {
-        if(m.data_[i][i] == 0) {
-            int num = m.find_needed_row(i);
-            if(num != 0) {
-                std::swap(m.data_[i], m.data_[num]);
-                def_sign *= -1;
-            } else continue;
-        }
-
-        for(int j = i + 1; j < m.rows_; ++j) {
-            m.Gauss_convert_row(j, i, i);
-            std::cout << m << std::endl;
-        }
-    }
-
-    value_type det = 1;
-    for(int i = 0; i < m.rows_; ++i) {
-        det *= m.data_[i][i];
-    }
-    return det*def_sign;
-}
-
-template<typename T>
-typename Matrix<T>::value_type Matrix<T>::Bareiss() const {
-    auto m = *this;
-    int def_sign = 1;
-    for(int i = 0; i < m.rows_ - 1; ++i) {
-        if(m.data_[i][i] == 0) {
-            int num = m.find_needed_row(i);
-            if(num != 0) {
-                std::swap(m.data_[i], m.data_[num]);
-                def_sign *= -1;
-            } else continue;
-        }
-
-        for(int j = i + 1; j < m.rows_; ++j) {
-            m.Bareiss_convert_row(j, i, i);
-            std::cout << m << std::endl;
-        }
-        m.denominator_ = m.data_[i][i];
-    }
-    return m.data_[m.rows_ - 1][m.cols_ - 1]*def_sign;
-}
-} // <-- namespace details
-
-/*template<typename T>
-inline bool operator==(const details::Matrix<T>& lhs, const details::Matrix<T>& rhs) {
-    if(lhs.nrows() != rhs.nrows() || lhs.ncols() != rhs.ncols()) return false;
-    return std::equal(lhs.begin(), lhs.end(), rhs.begin(), rhs.end());
-}*/
-
-template<typename T>
-std::ostream& operator<<(std::ostream& os, const details::Matrix<T>& obj) {
+std::ostream& operator<<(std::ostream& os, const Matrix<T>& obj) {
     for(int i = 0, Rows = obj.nrows(); i < Rows; ++i) {
         for(int j = 0, Cols = obj.ncols(); j < Cols; ++j) {
             os << obj[i][j] << " ";
@@ -227,3 +232,40 @@ std::ostream& operator<<(std::ostream& os, const details::Matrix<T>& obj) {
     }
     return os;
 }
+
+template<typename T>
+inline bool operator==(const details::Matrix<T>& lhs, const details::Matrix<T>& rhs) {
+    if(lhs.nrows() != rhs.nrows() || lhs.ncols() != rhs.ncols()) return false;
+    return std::equal(lhs.begin(), lhs.end(), rhs.begin(), rhs.end());
+}
+
+template<typename T>
+typename Matrix<T>::value_type Matrix<T>::Gauss() const {
+    auto temp = *this;
+    int det_sign = 1;
+
+    for(int i = 0; i < temp.rows_ - 1; ++i) {
+        if(!transform(i, temp, det_sign)) continue;
+        for(int j = i + 1; j < temp.rows_; ++j) {
+            temp.Gauss_convert_row(j, i, i);
+        }
+    }
+    return det_sign*temp.trace();
+}
+
+template<typename T>
+typename Matrix<T>::value_type Matrix<T>::Bareiss() const {
+    auto temp = *this;
+    int det_sign = 1;
+    value_type denominator = 1;
+
+    for(int i = 0; i < temp.rows_ - 1; ++i) {
+        if(!transform(i, temp, det_sign)) continue;
+        for(int j = i + 1; j < temp.rows_; ++j) {
+            temp.Bareiss_convert_row(j, i, i, denominator);
+        }
+        denominator = temp[i][i];
+    }
+    return det_sign*temp[temp.rows_ - 1][temp.cols_ - 1];
+}
+} // <-- namespace details

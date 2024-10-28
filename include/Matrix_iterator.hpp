@@ -9,7 +9,7 @@ template <typename T> struct Matrix_iterator {
     using const_value_type = const T;
     using const_pointer = const T*;
     using const_reference = const T&;
-    using iterator_category = std::random_access_iterator_tag;
+    using iterator_category = std::contiguous_iterator_tag;
     using difference_type = std::ptrdiff_t;
 
     Matrix_iterator(pointer ptr): ptr_(ptr) {}
@@ -46,6 +46,12 @@ template <typename T> struct Matrix_iterator {
 
     friend bool operator==(const Matrix_iterator& lhs,  const Matrix_iterator& rhs) { return lhs.ptr_ == rhs.ptr_; }
     friend bool operator!=(const Matrix_iterator& lhs,  const Matrix_iterator& rhs) { return lhs.ptr_ != rhs.ptr_; }
+    friend bool operator> (const Matrix_iterator& lhs,  const Matrix_iterator& rhs) { return lhs.ptr_ > rhs.ptr_; }
+    friend bool operator< (const Matrix_iterator& lhs,  const Matrix_iterator& rhs) { return lhs.ptr_ < rhs.ptr_; }
+    friend bool operator>=(const Matrix_iterator& lhs,  const Matrix_iterator& rhs) { return lhs.ptr_ >= rhs.ptr_; }
+    friend bool operator<=(const Matrix_iterator& lhs,  const Matrix_iterator& rhs) { return lhs.ptr_ <= rhs.ptr_; }
+
+    friend difference_type operator-(const Matrix_iterator&lhs, const Matrix_iterator& rhs) { return rhs.ptr_ - lhs.ptr_; }
 
 private:
     pointer ptr_;
