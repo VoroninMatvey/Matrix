@@ -15,8 +15,10 @@ int main() {
     vec.resize(size*size);
     reading_data(vec, size*size);
 
-    details::Matrix<int> m{size, size, vec.begin(), vec.end()};
+    details::Matrix<double> m{size, size, vec.begin(), vec.end()};
+    std::cout << "norm1_____________________________";
     std::cout << "Matrix determinant is: " << m.determinant();
+    std::cout << "norm2_____________________________";
 
 /*details::Matrix<double> m1{4, 4};
     m1.dump(std::cout);

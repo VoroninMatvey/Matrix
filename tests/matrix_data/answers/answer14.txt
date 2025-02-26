@@ -1,0 +1,1 @@
+Matrix determinant: 1360800

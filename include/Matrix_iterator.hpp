@@ -50,10 +50,11 @@ template <typename T> struct Matrix_iterator {
     friend bool operator< (const Matrix_iterator& lhs,  const Matrix_iterator& rhs) { return lhs.ptr_ < rhs.ptr_; }
     friend bool operator>=(const Matrix_iterator& lhs,  const Matrix_iterator& rhs) { return lhs.ptr_ >= rhs.ptr_; }
     friend bool operator<=(const Matrix_iterator& lhs,  const Matrix_iterator& rhs) { return lhs.ptr_ <= rhs.ptr_; }
-
+    //friend auto operator<=>(const Matrix_iterator& /*unused*/) = default;
     friend difference_type operator-(const Matrix_iterator&lhs, const Matrix_iterator& rhs) { return rhs.ptr_ - lhs.ptr_; }
 
 private:
     pointer ptr_;
 };
+
 }; // <-- namespace details
