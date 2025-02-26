@@ -1,4 +1,9 @@
 compile_commands.json
 determination
 obj/
-.*/
+.*
+tests/generator
+tests/matrix_data/
+tests/obj/
+
+
