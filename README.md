@@ -13,6 +13,7 @@ Run executable file:
 The program accepts as input:
 1) matrix size(count of rows or columns)
 2) elem1 elem2 elem3 ...
+
 Moreover, the matrix is read row by row
 ## Launching ready-made tests:
 ```
