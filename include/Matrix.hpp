@@ -40,7 +40,6 @@ public:
             data_(new pointer[rows]),
             rows_(rows),
             cols_(cols) {
-                std::cout << "constructor" << std::endl; 
                 pointer matrix_ptr = new value_type[rows_*cols_]{};
                 filling_data_field(matrix_ptr);
             }
@@ -48,7 +47,6 @@ public:
         template<typename It>
         Matrix(size_type rows, size_type cols, It beg, It end) :
             data_(new pointer[rows]), rows_(rows), cols_(cols) { //сделать выброс исключеняи
-            std::cout << "vec_constructor" << std::endl;
             if(std::distance(beg, end) != rows_*cols_) {
                 std::cout << "bad initialization!!!!!" << std::endl;
                 exit(0);
@@ -59,14 +57,12 @@ public:
         }
 
         Matrix(const Matrix &rhs): data_(new pointer[rhs.rows_]), rows_(rhs.rows_), cols_(rhs.cols_) {
-            std::cout << "copy_constructor" << std::endl;
             pointer matrix_ptr = new value_type[rows_*cols_];
             filling_data_field(matrix_ptr);
             std::copy(rhs.data_[0], rhs.data_[0] + cols_*rows_, data_[0]);
         }
 
         Matrix& operator=(const Matrix &rhs) {
-            std::cout << "assign operator" << std::endl;
             if(this == std::addressof(rhs)) return *this;
             Matrix new_m = rhs;
             swap(new_m);
@@ -76,13 +72,9 @@ public:
         Matrix(Matrix&& rhs) noexcept :
             data_(std::exchange(rhs.data_, nullptr)),
             rows_(std::exchange(rhs.rows_, 0)),
-            cols_(std::exchange(rhs.cols_, 0)) 
-        {
-            std::cout << "move_copy_constructor" << std::endl;
-        }
+            cols_(std::exchange(rhs.cols_, 0)) {}
 
         Matrix& operator=(Matrix&& rhs) noexcept {
-            std::cout << "move assign operator" << std::endl;
             if(this == std::addressof(rhs)) return *this;
             Matrix m = std::move(rhs);
             swap(m);
@@ -90,15 +82,10 @@ public:
         }
 
         ~Matrix() {
-            std::cout << "destructor" << std::endl;
-            std::cout<< "apak1" << std::endl;
             if(data_) {
-                std::cout<< "apak121" << std::endl;
                 delete[] *data_;
             }
-            std::cout<< "apak2" << std::endl;
             delete[] data_;
-            std::cout<< "apak3" << std::endl;
         }
 
         static Matrix eye(std::size_t n) {
@@ -173,16 +160,9 @@ private:
         int find_needed_row(int i) const {
             int k = i + 1;
             while(k != rows_) {
-                /*std::cout << "raws: " << rows_ << std::endl;
-                std::cout << "k = " << k << std::endl;
-                std::cout << "i = " << i << std::endl;
-                std::cout << "as" << data_[k][i] << std::endl;
-                std::cout << "sa" << data_[k][i + 1] << std::endl;
-                std::cout << "sah" << data_[k][i + 2] << std::endl;*/
                 if(data_[k][i] != 0) return k;
                 ++k;
             }
-            //std::cout << "final" << std::endl;
             return 0;
         }
 
@@ -191,21 +171,15 @@ private:
         int transform(int j, Matrix& temp, double &det_sign) const {
             if(temp[j][j] != 0) return 1;
             int num = temp.find_needed_row(j);
-            std::cout << "Num: " << num << "j: " << j <<std::endl; 
-            //std::cout << "find_nedeed_row: " << temp.find_needed_row(j) << std::endl;
             if(num != 0) {
-                //std::cout << temp;
                 std::swap(temp.data_[j], temp.data_[num]);
                 det_sign *= -1;
-                //std::cout << temp;
                 return 1;
             } else return 0;
         }
 
         //converting first row to zero element at position col_num using second row with Gauss alghoritm
         void Gauss_convert_row(int row_num1, int row_num2, int col_num) {
-            //std::cout << "Gauss convert row: " << std::endl;
-            //std::cout << "I convert " << row_num1 << " string, starting for " << col_num << " element, using string number " << row_num2 << std::endl;
             if(data_[row_num2][col_num] == 0) std::cout << "I find it" << std::endl;
             value_type coef = data_[row_num1][col_num] / data_[row_num2][col_num];
             for(int i = col_num; i < cols_; ++i) {
@@ -229,10 +203,7 @@ public:
         value_type determinant() const {
             if constexpr (!std::signed_integral<T>) {
                 std::cout << "Gauss!" << std::endl;
-                Matrix<double> temp = *this;
-                std::cout << "norm4_____________________________";
-                std::cout << "djsklcsknl1" << temp.Gauss() << "djsklcsknl2";
-                return 1;
+                return Gauss();
             } else {
                 std::cout << "Bareiss!" << std::endl;
                 return Bareiss();
@@ -274,19 +245,14 @@ typename Matrix<T>::value_type Matrix<T>::Gauss() const {
     auto temp = *this;
     double det_sign = 1;
     for(int i = 0; i < temp.rows_ - 1; ++i) {
-        //std::cout << "row number: " <<i << std::endl;
         transform(i, temp, det_sign);
         /*if(temp[i][i] == 0) return 0;
         for(int j = i + 1; j < temp.rows_; ++j) {
             temp.Gauss_convert_row(j, i, i);
-            //std::cout << temp;
         }*/
     }
 
-    std::cout << temp;
-    //std::cout << "kk " <<det_sign << std::endl;
     for(int i = 0; i < temp.cols_; ++i) det_sign *= temp[i][i];
-    std::cout << det_sign << "ghopap" << std::endl;
     return det_sign;
 }
 
