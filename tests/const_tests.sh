@@ -11,6 +11,3 @@ do
 	echo "work answer: $(${determinant} < "${tests_directory}test${i}.txt")"
 	echo ""
 done 
-
-
-echo ${border}

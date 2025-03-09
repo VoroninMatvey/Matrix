@@ -40,8 +40,8 @@ public:
             data_(new pointer[rows]),
             rows_(rows),
             cols_(cols) {
-                pointer matrix_ptr = new value_type[rows_*cols_]{};
-                filling_data_field(matrix_ptr);
+                matrix_ptr_ = new value_type[rows_*cols_]{};
+                filling_data_field(matrix_ptr_);
             }
 
         template<typename It>
@@ -51,14 +51,14 @@ public:
                 std::cout << "bad initialization!!!!!" << std::endl;
                 exit(0);
             }   
-            pointer matrix_ptr = new value_type[rows*cols];
-            filling_data_field(matrix_ptr);
+            matrix_ptr_ = new value_type[rows*cols];
+            filling_data_field(matrix_ptr_);
             std::copy(beg, end, data_[0]);     
         }
 
         Matrix(const Matrix &rhs): data_(new pointer[rhs.rows_]), rows_(rhs.rows_), cols_(rhs.cols_) {
-            pointer matrix_ptr = new value_type[rows_*cols_];
-            filling_data_field(matrix_ptr);
+            matrix_ptr_ = new value_type[rows_*cols_];
+            filling_data_field(matrix_ptr_);
             std::copy(rhs.data_[0], rhs.data_[0] + cols_*rows_, data_[0]);
         }
 
@@ -83,7 +83,7 @@ public:
 
         ~Matrix() {
             if(data_) {
-                delete[] *data_;
+                delete[] matrix_ptr_;
             }
             delete[] data_;
         }
@@ -202,10 +202,10 @@ private:
 public:   
         value_type determinant() const {
             if constexpr (!std::signed_integral<T>) {
-                std::cout << "Gauss!" << std::endl;
+                //std::cout << "Gauss!" << std::endl;
                 return Gauss();
             } else {
-                std::cout << "Bareiss!" << std::endl;
+                //std::cout << "Bareiss!" << std::endl;
                 return Bareiss();
             }
         }
@@ -216,6 +216,7 @@ public:
         const_iterator cend() const { return *data_ + cols_*rows_; }
 
 private:
+        pointer matrix_ptr_;
         double_pointer data_;
         size_type rows_; // количество строк
         size_type cols_; // количество столбцов
@@ -246,10 +247,10 @@ typename Matrix<T>::value_type Matrix<T>::Gauss() const {
     double det_sign = 1;
     for(int i = 0; i < temp.rows_ - 1; ++i) {
         transform(i, temp, det_sign);
-        /*if(temp[i][i] == 0) return 0;
+        if(temp[i][i] == 0) return 0;
         for(int j = i + 1; j < temp.rows_; ++j) {
             temp.Gauss_convert_row(j, i, i);
-        }*/
+        }
     }
 
     for(int i = 0; i < temp.cols_; ++i) det_sign *= temp[i][i];

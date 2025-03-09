@@ -16,6 +16,6 @@ int main() {
     reading_data(vec, size*size);
 
     details::Matrix<double> m{size, size, vec.begin(), vec.end()};
-    std::cout << "Matrix determinant is: " << m.determinant() << std::endl;
+    std::cout << m.determinant() << std::endl;
 
 }
