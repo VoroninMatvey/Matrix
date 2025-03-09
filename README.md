@@ -11,8 +11,8 @@ Run executable file:
 ./determination
 ```
 The program accepts as input:
-1)matrix size(count of rows or columns)
-2)elem1 elem2 elem3 ...
+1) matrix size(count of rows or columns)
+2) elem1 elem2 elem3 ...
 Moreover, the matrix is read row by row
 ## Launching ready-made tests:
 ```
@@ -28,8 +28,8 @@ Run executable file:
 ./generator 
 ```
 The program accepts as input:
-1)matrix size
-2)maximum of desriminant value
-3)number of tests
+1) matrix size
+2) maximum of desriminant value
+3) number of tests
 
 In directory matrix_data are generated tests and answers
