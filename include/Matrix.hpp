@@ -40,6 +40,7 @@ public:
             data_(new pointer[rows]),
             rows_(rows),
             cols_(cols) {
+                std::cout << "constructor" << std::endl; 
                 pointer matrix_ptr = new value_type[rows_*cols_]{};
                 filling_data_field(matrix_ptr);
             }
@@ -47,6 +48,7 @@ public:
         template<typename It>
         Matrix(size_type rows, size_type cols, It beg, It end) :
             data_(new pointer[rows]), rows_(rows), cols_(cols) { //сделать выброс исключеняи
+            std::cout << "vec_constructor" << std::endl;
             if(std::distance(beg, end) != rows_*cols_) {
                 std::cout << "bad initialization!!!!!" << std::endl;
                 exit(0);
@@ -57,12 +59,14 @@ public:
         }
 
         Matrix(const Matrix &rhs): data_(new pointer[rhs.rows_]), rows_(rhs.rows_), cols_(rhs.cols_) {
+            std::cout << "copy_constructor" << std::endl;
             pointer matrix_ptr = new value_type[rows_*cols_];
             filling_data_field(matrix_ptr);
             std::copy(rhs.data_[0], rhs.data_[0] + cols_*rows_, data_[0]);
         }
 
         Matrix& operator=(const Matrix &rhs) {
+            std::cout << "assign operator" << std::endl;
             if(this == std::addressof(rhs)) return *this;
             Matrix new_m = rhs;
             swap(new_m);
@@ -73,9 +77,12 @@ public:
             data_(std::exchange(rhs.data_, nullptr)),
             rows_(std::exchange(rhs.rows_, 0)),
             cols_(std::exchange(rhs.cols_, 0)) 
-        {}
+        {
+            std::cout << "move_copy_constructor" << std::endl;
+        }
 
         Matrix& operator=(Matrix&& rhs) noexcept {
+            std::cout << "move assign operator" << std::endl;
             if(this == std::addressof(rhs)) return *this;
             Matrix m = std::move(rhs);
             swap(m);
@@ -83,6 +90,7 @@ public:
         }
 
         ~Matrix() {
+            std::cout << "destructor" << std::endl;
             std::cout<< "apak1" << std::endl;
             if(data_) {
                 std::cout<< "apak121" << std::endl;
@@ -181,9 +189,9 @@ private:
         //transforms the matrix to the desired form at loop iteration i before running the algorithms, if necessary
         //return 0, if temp[j][k] == 0 for all k from j to rows_, else return 1
         int transform(int j, Matrix& temp, double &det_sign) const {
-            //if(temp[j][j] == 0) std::cout << "transform" << std::endl;
             if(temp[j][j] != 0) return 1;
             int num = temp.find_needed_row(j);
+            std::cout << "Num: " << num << "j: " << j <<std::endl; 
             //std::cout << "find_nedeed_row: " << temp.find_needed_row(j) << std::endl;
             if(num != 0) {
                 //std::cout << temp;
@@ -268,11 +276,11 @@ typename Matrix<T>::value_type Matrix<T>::Gauss() const {
     for(int i = 0; i < temp.rows_ - 1; ++i) {
         //std::cout << "row number: " <<i << std::endl;
         transform(i, temp, det_sign);
-        if(temp[i][i] == 0) return 0;
+        /*if(temp[i][i] == 0) return 0;
         for(int j = i + 1; j < temp.rows_; ++j) {
             temp.Gauss_convert_row(j, i, i);
             //std::cout << temp;
-        }
+        }*/
     }
 
     std::cout << temp;
