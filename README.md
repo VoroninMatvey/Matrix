@@ -18,7 +18,7 @@ The program accepts as input:
 2)elem1 elem2 elem3 ...
 Moreover, the matrix is read row by row
 
-#Launching ready-made tests:
+##Launching ready-made tests:
 
 ```
 bash tests/const_tests.sh
