@@ -1,6 +1,7 @@
 #include <iostream>
 #include "Matrix.hpp"
 #include <vector>
+#include <iomanip>
 
 template<typename T>
 void reading_data(std::vector<T>& data, std::size_t sq_size) {
@@ -16,6 +17,6 @@ int main() {
     reading_data(vec, size*size);
 
     details::Matrix<double> m{size, size, vec.begin(), vec.end()};
-    std::cout << m.determinant() << std::endl;
+    std::cout << std::fixed << std::setprecision(1) << m.determinant() << std::endl;
 
 }
