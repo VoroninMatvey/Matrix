@@ -123,7 +123,7 @@ public:
                 for(int j = 0; j < M_size_*M_size_; ++j) {
                     file_test << temp.get_elem(j) << " ";
                 }
-                file_answ << "Matrix determinant: " << temp.determination();
+                file_answ << temp.determination();
             }
         }
 

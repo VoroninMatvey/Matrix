@@ -34,3 +34,8 @@ The program accepts as input:
 3) number of tests
 
 In directory matrix_data are generated tests and answers
+
+## Launching generated tests
+```
+bash generated_tests.sh
+```

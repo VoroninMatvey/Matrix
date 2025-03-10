@@ -17,6 +17,6 @@ int main() {
     reading_data(vec, size*size);
 
     details::Matrix<double> m{size, size, vec.begin(), vec.end()};
-    std::cout << std::fixed << std::setprecision(1) << m.determinant() << std::endl;
+    std::cout << std::fixed << std::setprecision(0) << m.determinant() << std::endl;
 
 }
