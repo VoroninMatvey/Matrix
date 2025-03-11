@@ -1,7 +1,7 @@
 #!/bin/bush
 
-tests_directory='./tests/const_tests/tests/'
-answers_directory='./tests/const_tests/answers/'
+tests_directory='./tests/const_tests/Gauss/tests/'
+answers_directory='./tests/const_tests/Gauss/answers/'
 determinant='./determination'
 border=$(find ${tests_directory} -type f | wc -l)
 

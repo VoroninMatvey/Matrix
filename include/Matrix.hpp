@@ -202,10 +202,8 @@ private:
 public:   
         value_type determinant() const {
             if constexpr (!std::signed_integral<T>) {
-                //std::cout << "Gauss!" << std::endl;
                 return Gauss();
             } else {
-                //std::cout << "Bareiss!" << std::endl;
                 return Bareiss();
             }
         }
@@ -260,8 +258,11 @@ typename Matrix<T>::value_type Matrix<T>::Gauss() const {
 template<typename T>
 typename Matrix<T>::value_type Matrix<T>::Bareiss() const {
     auto temp = *this;
+    double det_sign = 1;
     value_type denominator = 1;
     for(int i = 0; i < temp.rows_ - 1; ++i) {
+        transform(i, temp, det_sign);
+        if(temp[i][i] == 0) return 0;
         for(int j = i + 1; j < temp.rows_; ++j) {
             temp.Bareiss_convert_row(j, i, i, denominator);
         }
@@ -269,6 +270,6 @@ typename Matrix<T>::value_type Matrix<T>::Bareiss() const {
         if(!denominator) return 0;
     }
 
-    return temp[temp.rows_ - 1][temp.cols_ - 1];
+    return temp[temp.rows_ - 1][temp.cols_ - 1] * det_sign;
 }
 } // <-- namespace details

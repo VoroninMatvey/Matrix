@@ -4,21 +4,33 @@
 ```
 git clone git@github.com:VoroninMatvey/Matrix.git
 cd Matrix
-make
 ```
-Run executable file:
+Сompile and run the executable file for the Gauss algorithm:
 ```
+make ALGORITHM=gauss
+./determination
+```
+Сompile and run the executable file for the Bareiss algorithm:
+```
+make ALGORITHM=bareiss
 ./determination
 ```
 The program accepts as input:
 1) matrix size(count of rows or columns)
 2) elem1 elem2 elem3 ...
 
-Moreover, the matrix is read row by row
+Important: the matrix is read row by row
+
 ## Launching ready-made tests:
+For Gauss:
 ```
-bash tests/const_tests.sh
+bash tests/Gauss_const_tests.sh
 ```
+For Bareiss:
+```
+bash tests/Bareiss_const_tests.sh
+```
+
 ## Building the tests:
 ```
 cd tests

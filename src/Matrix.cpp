@@ -16,7 +16,13 @@ int main() {
     vec.resize(size*size);
     reading_data(vec, size*size);
 
-    details::Matrix<double> m{size, size, vec.begin(), vec.end()};
-    std::cout << std::fixed << std::setprecision(0) << m.determinant() << std::endl;
+    #ifdef gauss
+        details::Matrix<double> m{size, size, vec.begin(), vec.end()};
+        std::cout << std::fixed << std::setprecision(0) << m.determinant() << std::endl;
+    #endif
 
+    #ifdef bareiss 
+        details::Matrix<int> m{size, size, vec.begin(), vec.end()};
+        std::cout << std::fixed << std::setprecision(0) << m.determinant() << std::endl;
+    #endif
 }
