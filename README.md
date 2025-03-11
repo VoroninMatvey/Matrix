@@ -4,15 +4,10 @@
 ```
 git clone git@github.com:VoroninMatvey/Matrix.git
 cd Matrix
+make ALGORITHM=gauss/bareiss
 ```
-Сompile and run the executable file for the Gauss algorithm:
+Run the executable file:
 ```
-make ALGORITHM=gauss
-./determination
-```
-Сompile and run the executable file for the Bareiss algorithm:
-```
-make ALGORITHM=bareiss
 ./determination
 ```
 The program accepts as input:
