@@ -1,7 +1,7 @@
 #include <iterator>
 
 namespace details{
-template <typename T> struct Matrix_iterator {
+template <typename T> struct Matrix_iterator final {
 
     using value_type = T;
     using pointer = T*;
@@ -19,13 +19,13 @@ template <typename T> struct Matrix_iterator {
     Matrix_iterator& operator++() {++ptr_; return *this; }
     Matrix_iterator& operator--() {--ptr_; return *this; }
 
-    Matrix_iterator& operator++(int) {
+    Matrix_iterator operator++(int) {
         auto old = ptr_;
         ++ptr_;
         return old;
     }
 
-    Matrix_iterator& operator--(int) {
+    Matrix_iterator operator--(int) {
         auto old = ptr_;
         --ptr_;
         return old;
@@ -44,17 +44,10 @@ template <typename T> struct Matrix_iterator {
         return *this;
     }
 
-    friend bool operator==(const Matrix_iterator& lhs,  const Matrix_iterator& rhs) { return lhs.ptr_ == rhs.ptr_; }
-    friend bool operator!=(const Matrix_iterator& lhs,  const Matrix_iterator& rhs) { return lhs.ptr_ != rhs.ptr_; }
-    friend bool operator> (const Matrix_iterator& lhs,  const Matrix_iterator& rhs) { return lhs.ptr_ > rhs.ptr_; }
-    friend bool operator< (const Matrix_iterator& lhs,  const Matrix_iterator& rhs) { return lhs.ptr_ < rhs.ptr_; }
-    friend bool operator>=(const Matrix_iterator& lhs,  const Matrix_iterator& rhs) { return lhs.ptr_ >= rhs.ptr_; }
-    friend bool operator<=(const Matrix_iterator& lhs,  const Matrix_iterator& rhs) { return lhs.ptr_ <= rhs.ptr_; }
-    //friend auto operator<=>(const Matrix_iterator& /*unused*/) = default;
-    friend difference_type operator-(const Matrix_iterator&lhs, const Matrix_iterator& rhs) { return rhs.ptr_ - lhs.ptr_; }
+    auto operator<=>(const Matrix_iterator& rhs) const = default;
+    difference_type operator-(const Matrix_iterator& rhs) { return ptr_ - rhs.ptr_; }
 
 private:
     pointer ptr_;
 };
-
 }; // <-- namespace details
