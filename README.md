@@ -37,7 +37,7 @@ Run executable file:
 ```
 The program accepts as input:
 1) matrix size
-2) maximum of desriminant value
+2) maximum of determinant value
 3) number of tests
 
 In directory matrix_data are generated tests and answers
