@@ -7,9 +7,91 @@
 
 namespace details {
 
-template <typename T> class Matrix final {
+template <typename T> void construct(T* p, const T& rhs) {new(p) T(rhs); }
+template <typename T> void destroy(T* p) noexcept {p->~T(); }
+template <typename Iter> void destroy(Iter first, Iter last) noexcept {
+    while(first != last) {
+        destroy(std::addressof(*first++));
+    }
+} 
 
-public:
+template <typename T> class ExtraBuffer {
+protected:
+        T** data_ = nullptr;
+        std::size_t rows_ = 0;
+    
+protected:
+        ExtraBuffer(const ExtraBuffer&) = delete;
+        ExtraBuffer& operator=(const ExtraBuffer&) = delete;
+        ExtraBuffer(ExtraBuffer &&rhs) noexcept :  
+            data_(std::exchange(rhs.data_, nullptr)),
+            rows_(std::exchange(rhs.rows_, 0)) {}
+        
+        ExtraBuffer& operator=(ExtraBuffer &&rhs) noexcept {
+            if(this != std::addressof(rhs)) {
+                std::swap(data_, rhs.data_);
+                std::swap(rows_, rhs.rows_);
+            }
+            return *this;
+        }
+    
+        explicit ExtraBuffer(std::size_t size): 
+            data_((size == 0) ? nullptr :
+                static_cast<T**>(::operator new(size*sizeof(T*)))),
+            rows_(size) {}
+            
+        ~ExtraBuffer() { 
+            ::operator delete(data_);
+        }
+}; // <-- class ExtraBuffer
+
+template <typename T> class MatrixBuffer : protected ExtraBuffer<T> {
+protected:
+        using ExtraBuffer<T>::data_;
+        using ExtraBuffer<T>::rows_;
+
+protected: 
+        T* matrix_ptr_ = nullptr;
+        std::size_t cols_, used_ = 0;
+
+protected:
+        MatrixBuffer(const MatrixBuffer&) = delete;
+        MatrixBuffer& operator=(const MatrixBuffer&) = delete;
+        MatrixBuffer(MatrixBuffer &&rhs) noexcept :
+            ExtraBuffer<T>(std::move(rhs)), 
+            matrix_ptr_(std::exchange(rhs.matrix_ptr_, nullptr)),
+            cols_(std::exchange(rhs.cols_, 0)),
+            used_(std::exchange(rhs.used_, 0)) {}
+
+        MatrixBuffer& operator=(MatrixBuffer &&rhs) noexcept { 
+            if(this != std::addressof(rhs)) {
+                ExtraBuffer<T>::operator=(std::move(rhs));
+                std::swap(matrix_ptr_, rhs.matrix_ptr_);
+                std::swap(cols_, rhs.cols_);
+                std::swap(used_, rhs.used_);
+            }
+            return *this;
+        }
+
+        MatrixBuffer(std::size_t rows = 0, std::size_t cols = 0) : 
+            ExtraBuffer<T>(rows), 
+            matrix_ptr_((rows*cols == 0) ? nullptr :
+                static_cast<T*>(::operator new(sizeof(T)*rows*cols))),
+            cols_(cols) {
+                for(std::size_t i = 0; i < rows_; ++i) {
+                    data_[i] = matrix_ptr_ + i*cols_;
+                }
+
+            }
+
+        ~MatrixBuffer() { 
+            destroy(matrix_ptr_, matrix_ptr_ + used_);
+            ::operator delete(matrix_ptr_);
+        }       
+}; // <-- MatrixBuffer
+
+template <typename T> class Matrix : private MatrixBuffer<T> {
+
         using size_type = std::size_t;
         using value_type = T;
         using reference = T&;
@@ -22,7 +104,12 @@ public:
         using const_iterator = Matrix_iterator<const T>;
         using reverse_iterator = std::reverse_iterator<iterator>;
 
-private:
+        using MatrixBuffer<T>::data_;
+        using MatrixBuffer<T>::matrix_ptr_;
+        using MatrixBuffer<T>::rows_;
+        using MatrixBuffer<T>::cols_;
+        using MatrixBuffer<T>::used_;
+
         struct ProxyRow {
             pointer row_;
 
@@ -30,62 +117,48 @@ private:
             reference operator[](int n) { return row_[n]; }
             const_reference operator[](int n) const {return row_[n]; }
         };
-    
+
 public:
         ProxyRow operator[](int n) const {
             return ProxyRow{data_[n]};
         }
 
-        Matrix(size_type rows, size_type cols):
-            data_(new pointer[rows]),
-            rows_(rows),
-            cols_(cols) {
-                matrix_ptr_ = new value_type[rows_*cols_]{};
-                filling_data_field(matrix_ptr_);
+        Matrix(size_type rows = 0, size_type cols = 0) : 
+            MatrixBuffer<T>(rows, cols) {
+                value_type temp{};
+                while(used_ < rows*cols) {
+                    construct(matrix_ptr_ + used_, temp);
+                    ++used_;
+                }
             }
 
-        template<typename It>
+        template <typename It>
         Matrix(size_type rows, size_type cols, It beg, It end) :
-            data_(new pointer[rows]), rows_(rows), cols_(cols) { //сделать выброс исключеняи
-            if(std::distance(beg, end) != rows_*cols_) {
-                std::cout << "bad initialization!!!!!" << std::endl;
-                exit(0);
-            }   
-            matrix_ptr_ = new value_type[rows*cols];
-            filling_data_field(matrix_ptr_);
-            std::copy(beg, end, data_[0]);     
-        }
-
-        Matrix(const Matrix &rhs): data_(new pointer[rhs.rows_]), rows_(rhs.rows_), cols_(rhs.cols_) {
-            matrix_ptr_ = new value_type[rows_*cols_];
-            filling_data_field(matrix_ptr_);
-            std::copy(rhs.data_[0], rhs.data_[0] + cols_*rows_, data_[0]);
-        }
-
-        Matrix& operator=(const Matrix &rhs) {
-            if(this == std::addressof(rhs)) return *this;
-            Matrix new_m = rhs;
-            swap(new_m);
-            return *this;
-        }
-
-        Matrix(Matrix&& rhs) noexcept :
-            data_(std::exchange(rhs.data_, nullptr)),
-            rows_(std::exchange(rhs.rows_, 0)),
-            cols_(std::exchange(rhs.cols_, 0)) {}
-
-        Matrix& operator=(Matrix&& rhs) noexcept {
-            if(this == std::addressof(rhs)) return *this;
-            Matrix m = std::move(rhs);
-            swap(m);
-            return *this;
-        }
-
-        ~Matrix() {
-            if(data_) {
-                delete[] matrix_ptr_;
+            MatrixBuffer<T>(rows, cols) {
+                if(std::distance(beg, end) != rows_*cols_) {
+                    throw std::runtime_error("Mismatch of sizes");
+                } 
+                while(used_ < rows*cols) {
+                    construct(matrix_ptr_ + used_, *beg);
+                    ++beg; ++used_;
+                }
             }
-            delete[] data_;
+
+        Matrix(Matrix&& rhs) = default;
+        Matrix& operator=(Matrix&& rhs) = default;
+        Matrix(const Matrix& rhs) : MatrixBuffer<T>(rhs.rows_, rhs.cols_) {
+            while(used_ < rhs.used_) {
+                construct(matrix_ptr_ + used_, rhs.matrix_ptr_[used_]);
+                ++used_;
+            }
+        }
+
+        Matrix& operator=(const Matrix& rhs) {
+            if(this != std::addressof(rhs)) {
+                Matrix tmp = rhs;
+                swap(tmp);
+            }
+            return *this;
         }
 
         static Matrix eye(std::size_t n) {
@@ -96,18 +169,21 @@ public:
             return m;
         }
 
-        void swap(Matrix& m) {
-            std::swap(cols_, m.cols_);
-            std::swap(rows_, m.rows_);
+        void swap(Matrix& m) noexcept {
             std::swap(data_, m.data_);
+            std::swap(matrix_ptr_, m.matrix_ptr_);
+            std::swap(rows_, m.rows_);
+            std::swap(cols_, m.cols_);
+            std::swap(used_, m.used_);
+        }
+
+public:
+        size_type nrows() const {
+            return rows_;
         }
 
         size_type ncols() const {
             return cols_;
-        }
-
-        size_type nrows() const {
-            return rows_;
         }
 
         value_type trace() const {
@@ -150,12 +226,6 @@ public:
         }
 
 private:
-        void filling_data_field(pointer ptr) {
-            for(int i = 0; i < rows_; ++i) {
-                data_[i] = ptr + i*cols_;
-            }
-        }
-
         //Find for a row with a non-zero element at position [k][i], k > i. Return 0 if there is none
         int find_needed_row(int i) const {
             int k = i + 1;
@@ -198,8 +268,8 @@ private:
 
         value_type Gauss() const;
         value_type Bareiss() const;
-    
-public:   
+
+public:
         value_type determinant() const {
             if constexpr (!std::signed_integral<T>) {
                 return Gauss();
@@ -212,14 +282,7 @@ public:
         iterator end() const { return *data_ + cols_*rows_; }
         const_iterator cbegin() const { return *data_; }
         const_iterator cend() const { return *data_ + cols_*rows_; }
-
-private:
-        pointer matrix_ptr_;
-        double_pointer data_;
-        size_type rows_; // количество строк
-        size_type cols_; // количество столбцов
-
-}; // <-- namespace Matrix
+}; // <-- Matrix
 
 template<typename T>
 std::ostream& operator<<(std::ostream& os, const Matrix<T>& obj) {

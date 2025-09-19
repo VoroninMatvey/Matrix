@@ -12,17 +12,17 @@ int main() {
     std::size_t m_size = 0;
     std::cin >> m_size;
 
-    std::vector<double> vec;
-    vec.resize(m_size*m_size);
-    reading_data(vec, vec.size());
-
     #ifdef gauss
+        std::vector<double> vec(m_size*m_size);
+        reading_data(vec, vec.size());
         details::Matrix<double> m{m_size, m_size, vec.begin(), vec.end()};
         std::cout << std::fixed << std::setprecision(0) << m.determinant() << std::endl;
     #endif
 
     #ifdef bareiss 
-        details::Matrix<int> m{m_size, m_size, vec.begin(), vec.end()};
+        std::vector<long long> vec(m_size*m_size);
+        reading_data(vec, vec.size());
+        details::Matrix<long long> m{m_size, m_size, vec.begin(), vec.end()};
         std::cout << std::fixed << std::setprecision(0) << m.determinant() << std::endl;
     #endif
 }
