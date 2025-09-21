@@ -10,6 +10,12 @@ namespace Tests {
 
 class Matrix final {
 
+private:
+        size_t m_size_;
+        size_t max_det_;
+        int det_;
+        std::vector<int> matrix_;
+
 public:
         Matrix(size_t m_size, size_t max_det, int det = {}, std::vector<int> vec = {}) :
             m_size_(m_size), 
@@ -19,24 +25,19 @@ public:
                 matrix_.resize(m_size*m_size);
             }
 
-        int get_elem(size_t n) const {
+        int get_elem(size_t n) const noexcept {
             return matrix_[n];
         }
 
-        int determination() const {
+        int determination() const noexcept {
             return det_;
         }
 private:
-        size_t m_size_;
-        size_t max_det_;
-        int det_;
-        std::vector<int> matrix_;
-
         int random(int min_val, int max_val) const {
             std::random_device rd;
             std::uniform_int_distribution<int> dist(min_val, max_val);
             return dist(rd);
-        }
+}
 
         void triangular_matrix() {
             //setting the numbers on the diagonal of the matrix
@@ -73,7 +74,7 @@ private:
         }
 
         //adds coef*row2 to row1
-        void adding_strings(int row1, int row2, int coef) {
+        void adding_strings(int row1, int row2, int coef) noexcept {
             for(int i = 0; i < m_size_; ++i) {
                 matrix_[m_size_ * row1 + i] += (coef * matrix_[m_size_ * row2 + i]);
             }
