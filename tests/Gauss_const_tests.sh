@@ -1,8 +1,11 @@
-#!/bin/bush
+#!/bin/bash
 
-tests_directory='./tests/const_tests/Gauss/tests/'
-answers_directory='./tests/const_tests/Gauss/answers/'
-determinant='./determination'
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
+
+tests_directory="${SCRIPT_DIR}/const_tests/Gauss/tests/"
+answers_directory="${SCRIPT_DIR}/const_tests/Gauss/answers/"
+determinant="${PROJECT_ROOT}/build/determination"
 border=$(find ${tests_directory} -type f | wc -l)
 
 echo ""

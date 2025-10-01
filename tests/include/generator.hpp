@@ -102,24 +102,25 @@ private:
 public:
         void tests_generation() const {
             namespace fs = std::filesystem;
+            fs::path tdata_dir = "../../tests/matrix_data";
 
-            if(!fs::exists("matrix_data")) {
-                fs::create_directory("matrix_data");
-                fs::create_directory("matrix_data/tests");
-                fs::create_directory("matrix_data/answers");
+            if(!fs::exists(tdata_dir)) {
+                fs::create_directory(tdata_dir);
+                fs::create_directory(tdata_dir/"tests");
+                fs::create_directory(tdata_dir/"answers");
             } else {
-                fs::remove_all("matrix_data/tests");
-                fs::remove_all("matrix_data/answers");
-                fs::create_directory("matrix_data/tests");
-                fs::create_directory("matrix_data/answers");
+                fs::remove_all(tdata_dir/"tests");
+                fs::remove_all(tdata_dir/"answers");
+                fs::create_directory(tdata_dir/"tests");
+                fs::create_directory(tdata_dir/"answers");
             }
             
             for(int i = 0; i < Numb_of_tests_; ++i) {
                 Matrix temp(M_size_, Max_det_);
                 temp.create();
 
-                std::ofstream file_test("matrix_data/tests/test" + std::to_string(i + 1) + ".txt");
-                std::ofstream file_answ("matrix_data/answers/answer" + std::to_string(i + 1) + ".txt");
+                std::ofstream file_test(tdata_dir/"tests"/("test" + std::to_string(i + 1) + ".txt"));
+                std::ofstream file_answ(tdata_dir/"answers"/("answer" + std::to_string(i + 1) + ".txt"));
                 file_test << M_size_ << " ";
                 for(int j = 0; j < M_size_*M_size_; ++j) {
                     file_test << temp.get_elem(j) << " ";

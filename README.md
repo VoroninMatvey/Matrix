@@ -4,7 +4,9 @@
 ```
 git clone git@github.com:VoroninMatvey/Matrix.git
 cd Matrix
-make ALGORITHM=gauss/bareiss
+cmake -DCMAKE_BUILD_TYPE=Release -DINT_MATRIX=<ON/OFF> -S . -B build
+cd build/
+cmake --build .
 ```
 Run the executable file:
 ```
@@ -19,17 +21,16 @@ Important: the matrix is read row by row
 ## Launching ready-made tests:
 For Gauss:
 ```
-bash tests/Gauss_const_tests.sh
+bash ../tests/Gauss_const_tests.sh
 ```
 For Bareiss:
 ```
-bash tests/Bareiss_const_tests.sh
+bash ../tests/Bareiss_const_tests.sh
 ```
 
 ## Building the tests:
 ```
 cd tests
-make
 ```
 Run executable file:
 ```
