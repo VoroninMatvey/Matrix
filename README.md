@@ -30,13 +30,9 @@ bash ../tests/Bareiss_const_tests.sh
 
 ## Building the tests:
 ```
-cd tests
+bash ../tests/generate_tests.sh
 ```
-Run executable file:
-```
-./generator 
-```
-The program accepts as input:
+The sript accepts as input:
 1) matrix size
 2) maximum of determinant value
 3) number of tests
@@ -45,5 +41,5 @@ In directory matrix_data are generated tests and answers
 
 ## Launching generated tests
 ```
-bash generated_tests.sh
+bash ../tests/generated_tests.sh
 ```

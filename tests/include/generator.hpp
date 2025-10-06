@@ -3,9 +3,11 @@
 #include <vector>
 #include <fstream>
 #include <filesystem>
+#include <string>
 
 namespace Tests {
 
+        namespace fs = std::filesystem;
         using size_t = std::size_t;
 
 class Matrix final {
@@ -89,20 +91,21 @@ public:
 class generator final {
 
 public:
-        generator(size_t m_size, size_t max_det, size_t  numb_of_tests): 
+        generator(size_t m_size, size_t max_det, size_t  numb_of_tests, const std::string& matrixdir): 
             M_size_(m_size),
             Max_det_(max_det),
-            Numb_of_tests_(numb_of_tests) {}
+            Numb_of_tests_(numb_of_tests),
+            Matrixdir_(matrixdir) {}
 
 private:
         size_t M_size_;
         size_t Max_det_;
         size_t Numb_of_tests_;
+        fs::path Matrixdir_;
 
 public:
         void tests_generation() const {
-            namespace fs = std::filesystem;
-            fs::path tdata_dir = "../../tests/matrix_data";
+            fs::path tdata_dir = Matrixdir_/"tests/matrix_data";
 
             if(!fs::exists(tdata_dir)) {
                 fs::create_directory(tdata_dir);
