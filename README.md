@@ -41,5 +41,5 @@ In directory matrix_data are generated tests and answers
 
 ## Launching generated tests
 ```
-bash ../tests/generated_tests.sh
+bash ../tests/run_generated_tests.sh
 ```
