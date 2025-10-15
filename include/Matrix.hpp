@@ -20,7 +20,7 @@ protected:
         T** data_ = nullptr;
         std::size_t rows_ = 0;
     
-protected:
+
         ExtraBuffer(const ExtraBuffer&) = delete;
         ExtraBuffer& operator=(const ExtraBuffer&) = delete;
         ExtraBuffer(ExtraBuffer &&rhs) noexcept :  
@@ -49,12 +49,10 @@ template <typename T> class MatrixBuffer : protected ExtraBuffer<T> {
 protected:
         using ExtraBuffer<T>::data_;
         using ExtraBuffer<T>::rows_;
-
-protected: 
+ 
         T* matrix_ptr_ = nullptr;
         std::size_t cols_, used_ = 0;
 
-protected:
         MatrixBuffer(const MatrixBuffer&) = delete;
         MatrixBuffer& operator=(const MatrixBuffer&) = delete;
         MatrixBuffer(MatrixBuffer &&rhs) noexcept :
@@ -177,7 +175,6 @@ public:
             std::swap(used_, m.used_);
         }
 
-public:
         size_type nrows() const noexcept {
             return rows_;
         }

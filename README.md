@@ -5,12 +5,11 @@
 git clone git@github.com:VoroninMatvey/Matrix.git
 cd Matrix
 cmake -DCMAKE_BUILD_TYPE=Release -DINT_MATRIX=<ON/OFF> -S . -B build
-cd build/
-cmake --build .
+cmake --build build
 ```
 Run the executable file:
 ```
-./determination
+./build/determination
 ```
 The program accepts as input:
 1) matrix size(count of rows or columns)
@@ -21,16 +20,16 @@ Important: the matrix is read row by row
 ## Launching ready-made tests:
 For Gauss:
 ```
-bash ../tests/Gauss_const_tests.sh
+bash tests/Gauss_const_tests.sh
 ```
 For Bareiss:
 ```
-bash ../tests/Bareiss_const_tests.sh
+bash tests/Bareiss_const_tests.sh
 ```
 
 ## Building the tests:
 ```
-bash ../tests/generate_tests.sh
+bash tests/generate_tests.sh
 ```
 The sript accepts as input:
 1) matrix size
@@ -41,5 +40,5 @@ In directory matrix_data are generated tests and answers
 
 ## Launching generated tests
 ```
-bash ../tests/run_generated_tests.sh
+bash tests/run_generated_tests.sh
 ```
