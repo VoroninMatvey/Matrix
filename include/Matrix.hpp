@@ -235,7 +235,7 @@ private:
   // transforms the matrix to the desired form at loop iteration i before
   // running the algorithms, if necessary return 0, if temp[j][k] == 0 for all k
   // from j to rows_, else return 1
-  int transform(int j, Matrix &temp, value_type &det_sign) const noexcept {
+  int Gauss_transform(int j, Matrix &temp, value_type &det_sign) const noexcept {
     int num = temp.find_needed_row(j);
 
     if (num == 0)
@@ -247,6 +247,17 @@ private:
     }
     return 1;
   }
+
+  int Bareiss_transform(int j, Matrix& temp, int &det_sign) const noexcept {
+    if(temp[j][j] != 0) return 1;
+    int num = temp.find_needed_row(j);
+    
+    if(num != 0) {
+        std::swap(temp.data_[j], temp.data_[num]);
+        det_sign *= -1;
+        return 1;
+    } else return 0;
+}
 
   // converting first row to zero element at position col_num using second row
   // with Gauss alghoritm
@@ -315,7 +326,7 @@ template <typename T> typename Matrix<T>::value_type Matrix<T>::Gauss() const {
   auto temp = *this;
   value_type det_sign = 1;
   for (std::size_t i = 0; i < temp.rows_ - 1; ++i) {
-    transform(i, temp, det_sign);
+    Gauss_transform(i, temp, det_sign);
     if (temp[i][i] == 0)
       return 0;
     for (std::size_t j = i + 1; j < temp.rows_; ++j) {
@@ -331,10 +342,10 @@ template <typename T> typename Matrix<T>::value_type Matrix<T>::Gauss() const {
 template <typename T>
 typename Matrix<T>::value_type Matrix<T>::Bareiss() const {
   auto temp = *this;
-  value_type det_sign = 1;
+  int det_sign = 1;
   value_type denominator = 1;
   for (std::size_t i = 0; i < temp.rows_ - 1; ++i) {
-    transform(i, temp, det_sign);
+    Bareiss_transform(i, temp, det_sign);
     if (temp[i][i] == 0)
       return 0;
     for (std::size_t j = i + 1; j < temp.rows_; ++j) {
