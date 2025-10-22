@@ -235,7 +235,7 @@ private:
   // transforms the matrix to the desired form at loop iteration i before
   // running the algorithms, if necessary return 0, if temp[j][k] == 0 for all k
   // from j to rows_, else return 1
-  int transform(int j, Matrix &temp, double &det_sign) const noexcept {
+  int transform(int j, Matrix &temp, value_type &det_sign) const noexcept {
     int num = temp.find_needed_row(j);
 
     if (num == 0)
@@ -313,7 +313,7 @@ inline bool operator==(const details::Matrix<T> &lhs,
 
 template <typename T> typename Matrix<T>::value_type Matrix<T>::Gauss() const {
   auto temp = *this;
-  double det_sign = 1;
+  value_type det_sign = 1;
   for (std::size_t i = 0; i < temp.rows_ - 1; ++i) {
     transform(i, temp, det_sign);
     if (temp[i][i] == 0)
