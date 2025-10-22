@@ -331,7 +331,7 @@ template <typename T> typename Matrix<T>::value_type Matrix<T>::Gauss() const {
 template <typename T>
 typename Matrix<T>::value_type Matrix<T>::Bareiss() const {
   auto temp = *this;
-  double det_sign = 1;
+  value_type det_sign = 1;
   value_type denominator = 1;
   for (std::size_t i = 0; i < temp.rows_ - 1; ++i) {
     transform(i, temp, det_sign);
